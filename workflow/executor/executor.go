@@ -1033,11 +1033,13 @@ func (we *WorkflowExecutor) Wait() error {
 	go we.monitorDeadline(ctx, annotationUpdatesCh)
 
 	_ = wait.ExponentialBackoff(ExecutorRetry, func() (bool, error) {
+		startTime := time.Now()
 		err = we.RuntimeExecutor.Wait(mainContainerID)
 		if err != nil {
 			log.Warnf("Failed to wait for container id '%s': %v", mainContainerID, err)
 			return false, err
 		}
+		log.Printf("WTFBBQ: waited %f sec for main container to complete", time.Since(startTime).Seconds())
 		return true, nil
 	})
 	if err != nil {

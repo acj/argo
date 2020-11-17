@@ -2167,6 +2167,7 @@ func (woc *wfOperationCtx) executeContainer(nodeName string, templateScope strin
 	}
 
 	woc.log.Debugf("Executing node %s with container template: %v\n", nodeName, tmpl)
+	startTime := time.Now()
 	_, err = woc.createWorkflowPod(nodeName, *tmpl.Container, tmpl, &createWorkflowPodOpts{
 		includeScriptOutput: includeScriptOutput,
 		onExitPod:           opts.onExitTemplate,
@@ -2174,8 +2175,11 @@ func (woc *wfOperationCtx) executeContainer(nodeName string, templateScope strin
 	})
 
 	if err != nil {
+		log.Printf("WTFBBQ: executeContainer saw transient error %v", err)
 		return woc.requeueIfTransientErr(err, node.Name)
 	}
+
+	log.Printf("WTFBBQ: executeContainer took %f sec to create workflow pod", time.Since(startTime).Seconds())
 
 	return node, err
 }
@@ -2600,10 +2604,13 @@ func (woc *wfOperationCtx) executeResource(nodeName string, templateScope string
 
 	mainCtr := woc.newExecContainer(common.MainContainerName, tmpl)
 	mainCtr.Command = []string{"argoexec", "resource", tmpl.Resource.Action}
+	startTime := time.Now()
 	_, err = woc.createWorkflowPod(nodeName, *mainCtr, tmpl, &createWorkflowPodOpts{onExitPod: opts.onExitTemplate, executionDeadline: opts.executionDeadline})
 	if err != nil {
+		log.Printf("WTFBBQ: executeResource transient error: %v", err)
 		return woc.requeueIfTransientErr(err, node.Name)
 	}
+	log.Printf("WTFBBQ: Took %d to create new exec container", time.Since(startTime))
 
 	return node, err
 }

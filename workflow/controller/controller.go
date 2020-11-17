@@ -413,12 +413,14 @@ func (wfc *WorkflowController) podGarbageCollector(stopCh <-chan struct{}) {
 			}
 			namespace := parts[0]
 			podName := parts[1]
+			startTime := time.Now()
 			err := common.DeletePod(wfc.kubeclientset, podName, namespace)
 			if err != nil {
 				log.WithFields(log.Fields{"namespace": namespace, "pod": podName, "err": err}).Error("Failed to delete pod for gc")
 			} else {
 				log.WithFields(log.Fields{"namespace": namespace, "pod": podName}).Info("Delete pod for gc successfully")
 			}
+			log.Printf("WTFBBQ: Took %f sec to delete pod", time.Since(startTime).Seconds())
 		}
 	}
 }
@@ -881,6 +883,7 @@ func (wfc *WorkflowController) newPodInformer() cache.SharedIndexInformer {
 				if err != nil {
 					return
 				}
+				log.Printf("WTFBBQ: Add pod: %v", key)
 				wfc.podQueue.Add(key)
 			},
 			UpdateFunc: func(old, new interface{}) {
@@ -888,6 +891,7 @@ func (wfc *WorkflowController) newPodInformer() cache.SharedIndexInformer {
 				if err != nil {
 					return
 				}
+				log.Printf("WTFBBQ: Update pod: %v", key)
 				oldPod, newPod := old.(*apiv1.Pod), new.(*apiv1.Pod)
 				if oldPod.ResourceVersion == newPod.ResourceVersion {
 					return
@@ -902,6 +906,12 @@ func (wfc *WorkflowController) newPodInformer() cache.SharedIndexInformer {
 			DeleteFunc: func(obj interface{}) {
 				// IndexerInformer uses a delta queue, therefore for deletes we have to use this
 				// key function.
+
+				key, err := cache.MetaNamespaceKeyFunc(obj)
+				if err != nil {
+					return
+				}
+				log.Printf("WTFBBQ: Delete pod: %v", key)
 
 				// Enqueue the workflow for deleted pod
 				_ = wfc.enqueueWfFromPodLabel(obj)
