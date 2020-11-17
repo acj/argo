@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -30,6 +31,8 @@ import (
 	apiwatch "k8s.io/client-go/tools/watch"
 	"k8s.io/client-go/util/workqueue"
 	"upper.io/db.v3/lib/sqlbuilder"
+
+	_ "net/http/pprof"
 
 	"github.com/argoproj/argo"
 	"github.com/argoproj/argo/config"
@@ -181,6 +184,10 @@ func (wfc *WorkflowController) Run(ctx context.Context, wfWorkers, podWorkers in
 
 	log.WithField("version", argo.GetVersion().Version).Info("Starting Workflow Controller")
 	log.Infof("Workers: workflow: %d, pod: %d", wfWorkers, podWorkers)
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	wfc.wfInformer = util.NewWorkflowInformer(wfc.dynamicInterface, wfc.GetManagedNamespace(), workflowResyncPeriod, wfc.tweakListOptions, indexers)
 	wfc.wftmplInformer = informer.NewTolerantWorkflowTemplateInformer(wfc.dynamicInterface, workflowTemplateResyncPeriod, wfc.managedNamespace)
