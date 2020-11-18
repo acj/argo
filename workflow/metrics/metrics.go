@@ -58,6 +58,7 @@ type Metrics struct {
 	// Custom Wistia metrics
 	workflowQueueDepth prometheus.Gauge
 	podQueueDepth      prometheus.Gauge
+	podDeletionLatency prometheus.Gauge
 }
 
 func (m *Metrics) Levels() []log.Level {
@@ -90,6 +91,7 @@ func New(metricsConfig, telemetryConfig ServerConfig) *Metrics {
 		}, []string{"level"}),
 		workflowQueueDepth: newGauge("wcustom_workflow_queue_depth", "Depth of workflow queue", nil),
 		podQueueDepth: newGauge("wcustom_pod_queue_depth", "Depth of pod queue", nil),
+		podDeletionLatency: newGauge("wcustom_pod_deletion_latency", "Latency for pod deletion (ms)", nil),
 	}
 
 	for _, metric := range metrics.allMetrics() {
@@ -114,6 +116,7 @@ func (m *Metrics) allMetrics() []prometheus.Metric {
 		m.operationDurations,
 		m.workflowQueueDepth,
 		m.podQueueDepth,
+		m.podDeletionLatency,
 	}
 	for _, metric := range m.workflowsByPhase {
 		allMetrics = append(allMetrics, metric)
@@ -136,6 +139,10 @@ func (m *Metrics) UpdateWorkflowQueueDepth(depth int) {
 
 func (m *Metrics) UpdatePodQueueDepth(depth int) {
 	m.podQueueDepth.Set(float64(depth))
+}
+
+func (m *Metrics) UpdatePodDeletionLatency(latencyMs int64) {
+	m.podDeletionLatency.Set(float64(latencyMs))
 }
 
 func (m *Metrics) WorkflowAdded(key string, phase v1alpha1.NodePhase) {

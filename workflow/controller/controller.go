@@ -421,6 +421,7 @@ func (wfc *WorkflowController) podGarbageCollector(stopCh <-chan struct{}) {
 				log.WithFields(log.Fields{"namespace": namespace, "pod": podName}).Info("Delete pod for gc successfully")
 			}
 			log.Printf("WTFBBQ: Took %f sec to delete pod", time.Since(startTime).Seconds())
+			wfc.metrics.UpdatePodDeletionLatency(time.Since(startTime).Milliseconds())
 		}
 	}
 }
