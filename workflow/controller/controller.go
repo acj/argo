@@ -529,6 +529,7 @@ func (wfc *WorkflowController) runWorker() {
 // processNextItem is the worker logic for handling workflow updates
 func (wfc *WorkflowController) processNextItem() bool {
 	log.Printf("WTFBBQ: Workflow queue depth is %d", wfc.wfQueue.Len())
+	wfc.metrics.UpdateWorkflowQueueDepth(wfc.wfQueue.Len())
 	key, quit := wfc.wfQueue.Get()
 	if quit {
 		return false
@@ -640,7 +641,8 @@ func (wfc *WorkflowController) podWorker() {
 // For pods updates, this simply means to "wake up" the workflow by
 // adding the corresponding workflow key into the workflow workqueue.
 func (wfc *WorkflowController) processNextPodItem() bool {
-	log.Printf("WTFBBQ: Pod queue depth is %d", wfc.wfQueue.Len())
+	log.Printf("WTFBBQ: Pod queue depth is %d", wfc.podQueue.Len())
+	wfc.metrics.UpdatePodQueueDepth(wfc.podQueue.Len())
 	key, quit := wfc.podQueue.Get()
 	if quit {
 		return false
