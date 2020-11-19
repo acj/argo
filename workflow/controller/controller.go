@@ -109,9 +109,9 @@ type WorkflowController struct {
 }
 
 const (
-	workflowResyncPeriod                = 20 * time.Minute
+	workflowResyncPeriod                = 2 * time.Minute
 	workflowTemplateResyncPeriod        = 20 * time.Minute
-	podResyncPeriod                     = 30 * time.Minute
+	podResyncPeriod                     = 3 * time.Minute
 	clusterWorkflowTemplateResyncPeriod = 20 * time.Minute
 )
 
