@@ -61,6 +61,9 @@ type Metrics struct {
 	podDeletionLatency prometheus.Gauge
 	podGCAddedToQueue  prometheus.Counter
 	podGCRemovedFromQueue prometheus.Counter
+	podInformerAddPod prometheus.Counter
+	podInformerUpdatePod prometheus.Counter
+	podInformerDeletePod prometheus.Counter
 }
 
 func (m *Metrics) Levels() []log.Level {
@@ -96,6 +99,9 @@ func New(metricsConfig, telemetryConfig ServerConfig) *Metrics {
 		podDeletionLatency: newGauge("wcustom_pod_deletion_latency", "Latency for pod deletion (ms)", nil),
 		podGCAddedToQueue: newCounter("wcustom_pod_gc_added_to_queue", "Pod GC requests added to queue", nil),
 		podGCRemovedFromQueue: newCounter("wcustom_pod_gc_removed_from_queue", "Pod GC requests removed from queue", nil),
+		podInformerAddPod: newCounter("wcustom_pod_informer_add_pod", "Pod informer notified that a pod was added", nil),
+		podInformerUpdatePod: newCounter("wcustom_pod_informer_update_pod", "Pod informer notified that a pod was updated", nil),
+		podInformerDeletePod: newCounter("wcustom_pod_informer_delete_pod", "Pod informer notified that a pod was deleted", nil),
 	}
 
 	for _, metric := range metrics.allMetrics() {
@@ -123,6 +129,9 @@ func (m *Metrics) allMetrics() []prometheus.Metric {
 		m.podDeletionLatency,
 		m.podGCAddedToQueue,
 		m.podGCRemovedFromQueue,
+		m.podInformerAddPod,
+		m.podInformerUpdatePod,
+		m.podInformerDeletePod,
 	}
 	for _, metric := range m.workflowsByPhase {
 		allMetrics = append(allMetrics, metric)
@@ -157,6 +166,18 @@ func (m *Metrics) IncrementPodGCAddedToQueue() {
 
 func (m *Metrics) IncrementPodGCRemovedFromQueue() {
 	m.podGCRemovedFromQueue.Inc()
+}
+
+func (m *Metrics) IncrementPodInformerAddPod() {
+	m.podInformerAddPod.Inc()
+}
+
+func (m *Metrics) IncrementPodInformerUpdatePod() {
+	m.podInformerUpdatePod.Inc()
+}
+
+func (m *Metrics) IncrementPodInformerDeletePod() {
+	m.podInformerDeletePod.Inc()
 }
 
 func (m *Metrics) WorkflowAdded(key string, phase v1alpha1.NodePhase) {

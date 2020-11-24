@@ -890,6 +890,7 @@ func (wfc *WorkflowController) newPodInformer() cache.SharedIndexInformer {
 					return
 				}
 				log.Printf("WTFBBQ: Add pod: %v", key)
+				wfc.metrics.IncrementPodInformerAddPod()
 				wfc.podQueue.Add(key)
 			},
 			UpdateFunc: func(old, new interface{}) {
@@ -898,6 +899,7 @@ func (wfc *WorkflowController) newPodInformer() cache.SharedIndexInformer {
 					return
 				}
 				log.Printf("WTFBBQ: Update pod: %v", key)
+				wfc.metrics.IncrementPodInformerUpdatePod()
 				oldPod, newPod := old.(*apiv1.Pod), new.(*apiv1.Pod)
 				if oldPod.ResourceVersion == newPod.ResourceVersion {
 					return
@@ -918,6 +920,7 @@ func (wfc *WorkflowController) newPodInformer() cache.SharedIndexInformer {
 					return
 				}
 				log.Printf("WTFBBQ: Delete pod: %v", key)
+				wfc.metrics.IncrementPodInformerDeletePod()
 
 				// Enqueue the workflow for deleted pod
 				_ = wfc.enqueueWfFromPodLabel(obj)
